@@ -37,7 +37,7 @@ PROJECT_ROOT = Path("D:/DEVNOVA/devnova")  # Sandboxed to DEVNOVA project
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
 # DEVNOVA Integration
-devnova = create_devnova_integration()
+devnova = create_devnova_integration(str(PROJECT_ROOT))
 
 # ============================================================================
 # DATA MODELS

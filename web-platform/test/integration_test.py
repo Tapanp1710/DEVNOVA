@@ -26,23 +26,23 @@ def test_devnova_integration():
         print("✅ DEVNOVA interface imports successful")
 
         # Test interface creation
-        devnova = create_devnova_integration()
+        devnova = create_devnova_integration(str(project_root))
         print("✅ DEVNOVA integration instance created")
 
         # Test context creation
         context = IDEContext(
-            workspace_path=str(project_root / 'devnova'),
-            active_file='devnova/state/api.py',
+            file_path='devnova/state/api.py',
             cursor_position={'line': 42, 'column': 8},
-            selected_text='def get_architecture_facts(self):'
+            selected_text='def get_architecture_facts(self):',
+            project_root=str(project_root),
+            language='python'
         )
         print("✅ IDE context creation successful")
 
         # Test suggestion request
         suggestion_request = SuggestionRequest(
             context=context,
-            suggestion_type='refactor',
-            user_query='How can I improve this code?'
+            intent='How can I improve this code?'
         )
         print("✅ Suggestion request creation successful")
 
@@ -55,8 +55,8 @@ def test_devnova_integration():
         # Test explanation request
         explanation_request = ExplanationRequest(
             context=context,
-            explanation_type='code_explanation',
-            target_code='def get_architecture_facts(self):'
+            code_to_explain='def get_architecture_facts(self):',
+            explanation_type='general'
         )
         print("✅ Explanation request creation successful")
 
@@ -143,31 +143,40 @@ def test_data_contracts():
 
         # Test data contract creation
         context = IDEContext(
-            workspace_path='/test',
-            active_file='test.py',
-            cursor_position={'line': 1, 'column': 0}
+            file_path='test.py',
+            cursor_position={'line': 1, 'column': 0},
+            project_root='/test',
+            language='python'
         )
 
         request = SuggestionRequest(
             context=context,
-            suggestion_type='test',
-            user_query='test query'
+            intent='test query'
         )
 
         # Mock response structure
+        from devnova.ide.interfaces import Suggestion
+        from datetime import datetime
+
+        mock_suggestion = Suggestion(
+            id='test_sugg_1',
+            title='Test Suggestion',
+            description='test suggestion',
+            code_changes=[],
+            confidence=0.8,
+            reasoning='test reasoning'
+        )
+
         response = SuggestionResponse(
             request_id='test_123',
-            suggestions=[{'type': 'test', 'content': 'test suggestion'}],
-            reasoning='test reasoning',
-            confidence=0.8,
-            processing_time=0.1,
-            agent_used='TestAgent'
+            suggestions=[mock_suggestion],
+            generated_at=datetime.now()
         )
 
         print("✅ Data contracts properly defined")
-        print(f"   Context fields: {len(context.__dataclass_fields__)}")
-        print(f"   Request fields: {len(request.__dataclass_fields__)}")
-        print(f"   Response fields: {len(response.__dataclass_fields__)}")
+        print(f"   Context fields: {len(context.__fields__)}")
+        print(f"   Request fields: {len(request.__fields__)}")
+        print(f"   Response fields: {len(response.__fields__)}")
 
         return True
 
