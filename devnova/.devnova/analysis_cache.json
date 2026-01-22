@@ -1,0 +1,1998 @@
+{
+  "analysis_results": {
+    "run.py": {
+      "filename": "run.py",
+      "functions": [
+        {
+          "name": "main",
+          "line": 18,
+          "args": [],
+          "returns": null
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "module": "",
+          "names": [
+            "sys"
+          ],
+          "line": 8
+        },
+        {
+          "module": "",
+          "names": [
+            "os"
+          ],
+          "line": 9
+        },
+        {
+          "module": "",
+          "names": [
+            "json"
+          ],
+          "line": 10
+        },
+        {
+          "module": "devnova.ingestion.engine",
+          "names": [
+            "ProjectIngestionEngine"
+          ],
+          "line": 11
+        },
+        {
+          "module": "devnova.analysis.analyzer",
+          "names": [
+            "StaticAnalysisLayer"
+          ],
+          "line": 12
+        },
+        {
+          "module": "devnova.memory.memory",
+          "names": [
+            "ProjectMemory"
+          ],
+          "line": 13
+        },
+        {
+          "module": "devnova.state.api",
+          "names": [
+            "ProjectStateAPI"
+          ],
+          "line": 14
+        },
+        {
+          "module": "devnova.orchestrator.orchestrator",
+          "names": [
+            "TaskOrchestrator"
+          ],
+          "line": 15
+        },
+        {
+          "module": "",
+          "names": [
+            "traceback"
+          ],
+          "line": 91
+        }
+      ],
+      "calls": [
+        "print",
+        "traceback.print_exc",
+        "state_api.get_architecture_facts",
+        "ProjectStateAPI",
+        "len",
+        "ProjectIngestionEngine",
+        "memory.update_from_analysis",
+        "list",
+        "TaskOrchestrator",
+        "json.dumps",
+        "ProjectMemory",
+        "StaticAnalysisLayer",
+        "ingestion_engine.scan_project",
+        "sys.exit",
+        "analysis_layer.analyze_all_python_files",
+        "memory.save",
+        "main",
+        "orchestrator.process_task",
+        "state_api.refresh_state"
+      ]
+    },
+    "__init__.py": {
+      "filename": "__init__.py",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "calls": []
+    },
+    "agents/architect_agent.py": {
+      "filename": "agents/architect_agent.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 17,
+          "args": [
+            "self",
+            "state_api",
+            "llm_interface"
+          ],
+          "returns": null
+        },
+        {
+          "name": "process_task",
+          "line": 20,
+          "args": [
+            "self",
+            "task"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "ArchitectAgent",
+          "line": 12,
+          "methods": [
+            "__init__",
+            "process_task"
+          ],
+          "bases": [
+            "BaseAgent"
+          ]
+        }
+      ],
+      "imports": [
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "Any"
+          ],
+          "line": 8
+        },
+        {
+          "module": "base",
+          "names": [
+            "BaseAgent"
+          ],
+          "line": 9
+        }
+      ],
+      "calls": [
+        "self._query_state",
+        "facts.get",
+        "task.get",
+        "super",
+        "self._call_llm"
+      ]
+    },
+    "agents/base.py": {
+      "filename": "agents/base.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 29,
+          "args": [
+            "self",
+            "role",
+            "state_api",
+            "llm_interface"
+          ],
+          "returns": null
+        },
+        {
+          "name": "process_task",
+          "line": 35,
+          "args": [
+            "self",
+            "task"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_get_system_prompt",
+          "line": 41,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_query_state",
+          "line": 84,
+          "args": [
+            "self",
+            "query_type"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_call_llm",
+          "line": 105,
+          "args": [
+            "self",
+            "user_prompt"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "AgentRole",
+          "line": 15,
+          "methods": [],
+          "bases": []
+        },
+        {
+          "name": "BaseAgent",
+          "line": 24,
+          "methods": [
+            "__init__",
+            "process_task",
+            "_get_system_prompt",
+            "_query_state",
+            "_call_llm"
+          ],
+          "bases": [
+            "ABC"
+          ]
+        }
+      ],
+      "imports": [
+        {
+          "module": "abc",
+          "names": [
+            "ABC",
+            "abstractmethod"
+          ],
+          "line": 9
+        },
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "Any",
+            "List"
+          ],
+          "line": 10
+        },
+        {
+          "module": "devnova.state.api",
+          "names": [
+            "ProjectStateAPI"
+          ],
+          "line": 11
+        },
+        {
+          "module": "devnova.llm.interface",
+          "names": [
+            "LLMInterface"
+          ],
+          "line": 12
+        },
+        {
+          "module": "",
+          "names": [
+            "json"
+          ],
+          "line": 112
+        }
+      ],
+      "calls": [
+        "self._get_system_prompt",
+        "kwargs.get",
+        "json.loads",
+        "prompts.get"
+      ]
+    },
+    "agents/debug_agent.py": {
+      "filename": "agents/debug_agent.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 17,
+          "args": [
+            "self",
+            "state_api",
+            "llm_interface"
+          ],
+          "returns": null
+        },
+        {
+          "name": "process_task",
+          "line": 20,
+          "args": [
+            "self",
+            "task"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "DebugAgent",
+          "line": 12,
+          "methods": [
+            "__init__",
+            "process_task"
+          ],
+          "bases": [
+            "BaseAgent"
+          ]
+        }
+      ],
+      "imports": [
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "Any"
+          ],
+          "line": 8
+        },
+        {
+          "module": "base",
+          "names": [
+            "BaseAgent"
+          ],
+          "line": 9
+        }
+      ],
+      "calls": [
+        "self._query_state",
+        "super",
+        "self._call_llm",
+        "task.get"
+      ]
+    },
+    "agents/docs_agent.py": {
+      "filename": "agents/docs_agent.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 17,
+          "args": [
+            "self",
+            "state_api",
+            "llm_interface"
+          ],
+          "returns": null
+        },
+        {
+          "name": "process_task",
+          "line": 20,
+          "args": [
+            "self",
+            "task"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "DocsAgent",
+          "line": 12,
+          "methods": [
+            "__init__",
+            "process_task"
+          ],
+          "bases": [
+            "BaseAgent"
+          ]
+        }
+      ],
+      "imports": [
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "Any"
+          ],
+          "line": 8
+        },
+        {
+          "module": "base",
+          "names": [
+            "BaseAgent"
+          ],
+          "line": 9
+        }
+      ],
+      "calls": [
+        "len",
+        "self._query_state",
+        "task.get",
+        "super",
+        "self._call_llm"
+      ]
+    },
+    "agents/feature_agent.py": {
+      "filename": "agents/feature_agent.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 17,
+          "args": [
+            "self",
+            "state_api",
+            "llm_interface"
+          ],
+          "returns": null
+        },
+        {
+          "name": "process_task",
+          "line": 20,
+          "args": [
+            "self",
+            "task"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "FeatureAgent",
+          "line": 12,
+          "methods": [
+            "__init__",
+            "process_task"
+          ],
+          "bases": [
+            "BaseAgent"
+          ]
+        }
+      ],
+      "imports": [
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "Any"
+          ],
+          "line": 8
+        },
+        {
+          "module": "base",
+          "names": [
+            "BaseAgent"
+          ],
+          "line": 9
+        }
+      ],
+      "calls": [
+        "len",
+        "self._query_state",
+        "task.get",
+        "super",
+        "self._call_llm"
+      ]
+    },
+    "agents/test_agent.py": {
+      "filename": "agents/test_agent.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 17,
+          "args": [
+            "self",
+            "state_api",
+            "llm_interface"
+          ],
+          "returns": null
+        },
+        {
+          "name": "process_task",
+          "line": 20,
+          "args": [
+            "self",
+            "task"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "TestAgent",
+          "line": 12,
+          "methods": [
+            "__init__",
+            "process_task"
+          ],
+          "bases": [
+            "BaseAgent"
+          ]
+        }
+      ],
+      "imports": [
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "Any"
+          ],
+          "line": 8
+        },
+        {
+          "module": "base",
+          "names": [
+            "BaseAgent"
+          ],
+          "line": 9
+        }
+      ],
+      "calls": [
+        "self._query_state",
+        "super",
+        "self._call_llm",
+        "task.get"
+      ]
+    },
+    "analysis/analyzer.py": {
+      "filename": "analysis/analyzer.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 52,
+          "args": [
+            "self",
+            "source_code",
+            "filename"
+          ],
+          "returns": null
+        },
+        {
+          "name": "analyze",
+          "line": 60,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "__init__",
+          "line": 92,
+          "args": [
+            "self",
+            "analyzer"
+          ],
+          "returns": null
+        },
+        {
+          "name": "visit_FunctionDef",
+          "line": 95,
+          "args": [
+            "self",
+            "node"
+          ],
+          "returns": null
+        },
+        {
+          "name": "visit_ClassDef",
+          "line": 106,
+          "args": [
+            "self",
+            "node"
+          ],
+          "returns": null
+        },
+        {
+          "name": "visit_Import",
+          "line": 125,
+          "args": [
+            "self",
+            "node"
+          ],
+          "returns": null
+        },
+        {
+          "name": "visit_ImportFrom",
+          "line": 136,
+          "args": [
+            "self",
+            "node"
+          ],
+          "returns": null
+        },
+        {
+          "name": "visit_Call",
+          "line": 148,
+          "args": [
+            "self",
+            "node"
+          ],
+          "returns": null
+        },
+        {
+          "name": "__init__",
+          "line": 165,
+          "args": [
+            "self",
+            "project_state"
+          ],
+          "returns": null
+        },
+        {
+          "name": "analyze_all_python_files",
+          "line": 168,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "FunctionInfo",
+          "line": 22,
+          "methods": [],
+          "bases": []
+        },
+        {
+          "name": "ClassInfo",
+          "line": 31,
+          "methods": [],
+          "bases": []
+        },
+        {
+          "name": "ImportInfo",
+          "line": 40,
+          "methods": [],
+          "bases": []
+        },
+        {
+          "name": "PythonAnalyzer",
+          "line": 47,
+          "methods": [
+            "__init__",
+            "analyze"
+          ],
+          "bases": []
+        },
+        {
+          "name": "ASTVisitor",
+          "line": 87,
+          "methods": [
+            "__init__",
+            "visit_FunctionDef",
+            "visit_ClassDef",
+            "visit_Import",
+            "visit_ImportFrom",
+            "visit_Call"
+          ],
+          "bases": [
+            "<ast.Attribute object at 0x00000269D974AEC0>"
+          ]
+        },
+        {
+          "name": "StaticAnalysisLayer",
+          "line": 160,
+          "methods": [
+            "__init__",
+            "analyze_all_python_files"
+          ],
+          "bases": []
+        }
+      ],
+      "imports": [
+        {
+          "module": "",
+          "names": [
+            "ast"
+          ],
+          "line": 14
+        },
+        {
+          "module": "",
+          "names": [
+            "os"
+          ],
+          "line": 15
+        },
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "List",
+            "Any",
+            "Set"
+          ],
+          "line": 16
+        },
+        {
+          "module": "dataclasses",
+          "names": [
+            "dataclass"
+          ],
+          "line": 17
+        },
+        {
+          "module": "devnova.ingestion.engine",
+          "names": [
+            "ProjectState",
+            "FileInfo"
+          ],
+          "line": 18
+        },
+        {
+          "module": "",
+          "names": [
+            "json"
+          ],
+          "line": 201
+        },
+        {
+          "module": "",
+          "names": [
+            "sys"
+          ],
+          "line": 202
+        },
+        {
+          "module": "devnova.ingestion.engine",
+          "names": [
+            "ProjectIngestionEngine"
+          ],
+          "line": 203
+        }
+      ],
+      "calls": [
+        "open",
+        "print",
+        "ast.parse",
+        "analyzer.visit",
+        "methods.append",
+        "len",
+        "ProjectIngestionEngine",
+        "self.generic_visit",
+        "ImportInfo",
+        "ClassInfo",
+        "set",
+        "list",
+        "json.dumps",
+        "StaticAnalysisLayer",
+        "FunctionInfo",
+        "results.values",
+        "ingestion_engine.scan_project",
+        "PythonAnalyzer",
+        "analyzer.analyze_all_python_files",
+        "analyzer.analyze",
+        "sys.exit",
+        "str",
+        "isinstance",
+        "ASTVisitor",
+        "f.read"
+      ]
+    },
+    "ide/interfaces.py": {
+      "filename": "ide/interfaces.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 25,
+          "args": [
+            "self",
+            "file_path",
+            "line_number",
+            "selected_text"
+          ],
+          "returns": null
+        },
+        {
+          "name": "__init__",
+          "line": 37,
+          "args": [
+            "self",
+            "project_path"
+          ],
+          "returns": null
+        },
+        {
+          "name": "load_context",
+          "line": 43,
+          "args": [
+            "self",
+            "context"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_suggestions",
+          "line": 50,
+          "args": [
+            "self",
+            "context"
+          ],
+          "returns": null
+        },
+        {
+          "name": "explain_code",
+          "line": 57,
+          "args": [
+            "self",
+            "context"
+          ],
+          "returns": null
+        },
+        {
+          "name": "load_context",
+          "line": 70,
+          "args": [
+            "self",
+            "context"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_suggestions",
+          "line": 98,
+          "args": [
+            "self",
+            "context"
+          ],
+          "returns": null
+        },
+        {
+          "name": "explain_code",
+          "line": 141,
+          "args": [
+            "self",
+            "context"
+          ],
+          "returns": null
+        },
+        {
+          "name": "load_context",
+          "line": 195,
+          "args": [
+            "self",
+            "context"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_suggestions",
+          "line": 198,
+          "args": [
+            "self",
+            "context"
+          ],
+          "returns": null
+        },
+        {
+          "name": "explain_code",
+          "line": 201,
+          "args": [
+            "self",
+            "context"
+          ],
+          "returns": null
+        },
+        {
+          "name": "create_ide_interface",
+          "line": 206,
+          "args": [
+            "ide_type",
+            "project_path"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "IDEContext",
+          "line": 20,
+          "methods": [
+            "__init__"
+          ],
+          "bases": []
+        },
+        {
+          "name": "IDEInterface",
+          "line": 32,
+          "methods": [
+            "__init__",
+            "load_context",
+            "get_suggestions",
+            "explain_code"
+          ],
+          "bases": [
+            "ABC"
+          ]
+        },
+        {
+          "name": "VSCodeInterface",
+          "line": 64,
+          "methods": [
+            "load_context",
+            "get_suggestions",
+            "explain_code"
+          ],
+          "bases": [
+            "IDEInterface"
+          ]
+        },
+        {
+          "name": "JetBrainsInterface",
+          "line": 189,
+          "methods": [
+            "load_context",
+            "get_suggestions",
+            "explain_code"
+          ],
+          "bases": [
+            "IDEInterface"
+          ]
+        }
+      ],
+      "imports": [
+        {
+          "module": "abc",
+          "names": [
+            "ABC",
+            "abstractmethod"
+          ],
+          "line": 14
+        },
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "Any",
+            "List",
+            "Optional"
+          ],
+          "line": 15
+        },
+        {
+          "module": "devnova.state.api",
+          "names": [
+            "ProjectStateAPI"
+          ],
+          "line": 16
+        },
+        {
+          "module": "devnova.orchestrator.orchestrator",
+          "names": [
+            "TaskOrchestrator"
+          ],
+          "line": 17
+        }
+      ],
+      "calls": [
+        "loaded_context.keys",
+        "len",
+        "ide_type.lower",
+        "ide.explain_code",
+        "print",
+        "suggestions.append",
+        "explanation_parts.append",
+        "VSCodeInterface",
+        "ide.load_context",
+        "next",
+        "create_ide_interface",
+        "NotImplementedError",
+        "ValueError",
+        "TaskOrchestrator",
+        "JetBrainsInterface",
+        "ProjectStateAPI",
+        "ide.get_suggestions",
+        "IDEContext"
+      ]
+    },
+    "ingestion/engine.py": {
+      "filename": "ingestion/engine.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 73,
+          "args": [
+            "self",
+            "root_path"
+          ],
+          "returns": null
+        },
+        {
+          "name": "scan_project",
+          "line": 81,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_detect_language",
+          "line": 133,
+          "args": [
+            "self",
+            "filename"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_add_to_tree",
+          "line": 143,
+          "args": [
+            "self",
+            "tree",
+            "path_parts"
+          ],
+          "returns": null
+        },
+        {
+          "name": "save_state",
+          "line": 157,
+          "args": [
+            "self",
+            "state",
+            "output_path"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "FileInfo",
+          "line": 21,
+          "methods": [],
+          "bases": []
+        },
+        {
+          "name": "ProjectMetadata",
+          "line": 30,
+          "methods": [],
+          "bases": []
+        },
+        {
+          "name": "ProjectState",
+          "line": 38,
+          "methods": [],
+          "bases": []
+        },
+        {
+          "name": "ProjectIngestionEngine",
+          "line": 45,
+          "methods": [
+            "__init__",
+            "scan_project",
+            "_detect_language",
+            "_add_to_tree",
+            "save_state"
+          ],
+          "bases": []
+        }
+      ],
+      "imports": [
+        {
+          "module": "",
+          "names": [
+            "os"
+          ],
+          "line": 14
+        },
+        {
+          "module": "",
+          "names": [
+            "json"
+          ],
+          "line": 15
+        },
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "List",
+            "Any"
+          ],
+          "line": 16
+        },
+        {
+          "module": "dataclasses",
+          "names": [
+            "dataclass"
+          ],
+          "line": 17
+        },
+        {
+          "module": "",
+          "names": [
+            "sys"
+          ],
+          "line": 173
+        }
+      ],
+      "calls": [
+        "open",
+        "self._detect_language",
+        "print",
+        "self._add_to_tree",
+        "os.walk",
+        "rel_filepath.replace",
+        "vars",
+        "len",
+        "ProjectIngestionEngine",
+        "FileInfo",
+        "set",
+        "list",
+        "files.append",
+        "rel_filepath.split",
+        "ProjectState",
+        "os.stat",
+        "ValueError",
+        "sys.exit",
+        "filename.lower",
+        "ProjectMetadata",
+        "json.dump",
+        "engine.scan_project",
+        "d.startswith",
+        "filename.startswith"
+      ]
+    },
+    "llm/interface.py": {
+      "filename": "llm/interface.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 25,
+          "args": [
+            "self",
+            "api_key",
+            "model"
+          ],
+          "returns": null
+        },
+        {
+          "name": "generate_response",
+          "line": 30,
+          "args": [
+            "self",
+            "system_prompt",
+            "user_prompt",
+            "temperature",
+            "max_tokens"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_dummy_response",
+          "line": 68,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "validate_response",
+          "line": 79,
+          "args": [
+            "self",
+            "response"
+          ],
+          "returns": null
+        },
+        {
+          "name": "extract_structured_output",
+          "line": 89,
+          "args": [
+            "self",
+            "response"
+          ],
+          "returns": null
+        },
+        {
+          "name": "__init__",
+          "line": 103,
+          "args": [
+            "self",
+            "provider",
+            "model",
+            "api_key"
+          ],
+          "returns": null
+        },
+        {
+          "name": "from_env",
+          "line": 109,
+          "args": [
+            "cls"
+          ],
+          "returns": null
+        },
+        {
+          "name": "create_llm_interface",
+          "line": 115,
+          "args": [
+            "config"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "LLMInterface",
+          "line": 19,
+          "methods": [
+            "__init__",
+            "generate_response",
+            "_dummy_response",
+            "validate_response",
+            "extract_structured_output"
+          ],
+          "bases": []
+        },
+        {
+          "name": "LLMConfig",
+          "line": 100,
+          "methods": [
+            "__init__",
+            "from_env"
+          ],
+          "bases": []
+        }
+      ],
+      "imports": [
+        {
+          "module": "",
+          "names": [
+            "json"
+          ],
+          "line": 14
+        },
+        {
+          "module": "",
+          "names": [
+            "requests"
+          ],
+          "line": 15
+        },
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "Any",
+            "Optional"
+          ],
+          "line": 16
+        }
+      ],
+      "calls": [
+        "self._dummy_response",
+        "cls",
+        "str",
+        "self.validate_response",
+        "print",
+        "llm.generate_response",
+        "ValueError",
+        "llm.validate_response",
+        "json.loads",
+        "LLMInterface",
+        "json.dumps",
+        "LLMConfig.from_env"
+      ]
+    },
+    "memory/memory.py": {
+      "filename": "memory/memory.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 47,
+          "args": [
+            "self",
+            "storage_path"
+          ],
+          "returns": null
+        },
+        {
+          "name": "add_node",
+          "line": 51,
+          "args": [
+            "self",
+            "node_id",
+            "node_type"
+          ],
+          "returns": null
+        },
+        {
+          "name": "add_edge",
+          "line": 57,
+          "args": [
+            "self",
+            "source",
+            "target",
+            "relation"
+          ],
+          "returns": null
+        },
+        {
+          "name": "query_nodes",
+          "line": 63,
+          "args": [
+            "self",
+            "node_type"
+          ],
+          "returns": null
+        },
+        {
+          "name": "query_edges",
+          "line": 75,
+          "args": [
+            "self",
+            "relation",
+            "source",
+            "target"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_neighbors",
+          "line": 90,
+          "args": [
+            "self",
+            "node_id",
+            "relation"
+          ],
+          "returns": null
+        },
+        {
+          "name": "save",
+          "line": 104,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "load",
+          "line": 115,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "__init__",
+          "line": 144,
+          "args": [
+            "self",
+            "storage_path"
+          ],
+          "returns": null
+        },
+        {
+          "name": "add_text",
+          "line": 149,
+          "args": [
+            "self",
+            "text_id",
+            "text",
+            "metadata"
+          ],
+          "returns": null
+        },
+        {
+          "name": "search_similar",
+          "line": 162,
+          "args": [
+            "self",
+            "query",
+            "top_k"
+          ],
+          "returns": null
+        },
+        {
+          "name": "save",
+          "line": 170,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "load",
+          "line": 177,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "__init__",
+          "line": 193,
+          "args": [
+            "self",
+            "storage_dir"
+          ],
+          "returns": null
+        },
+        {
+          "name": "update_from_analysis",
+          "line": 197,
+          "args": [
+            "self",
+            "analysis_results"
+          ],
+          "returns": null
+        },
+        {
+          "name": "save",
+          "line": 242,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "load",
+          "line": 247,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "GraphMemory",
+          "line": 33,
+          "methods": [
+            "__init__",
+            "add_node",
+            "add_edge",
+            "query_nodes",
+            "query_edges",
+            "get_neighbors",
+            "save",
+            "load"
+          ],
+          "bases": []
+        },
+        {
+          "name": "SemanticMemory",
+          "line": 136,
+          "methods": [
+            "__init__",
+            "add_text",
+            "search_similar",
+            "save",
+            "load"
+          ],
+          "bases": []
+        },
+        {
+          "name": "ProjectMemory",
+          "line": 188,
+          "methods": [
+            "__init__",
+            "update_from_analysis",
+            "save",
+            "load"
+          ],
+          "bases": []
+        }
+      ],
+      "imports": [
+        {
+          "module": "",
+          "names": [
+            "json"
+          ],
+          "line": 27
+        },
+        {
+          "module": "",
+          "names": [
+            "os"
+          ],
+          "line": 28
+        },
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "List",
+            "Any",
+            "Optional"
+          ],
+          "line": 29
+        },
+        {
+          "module": "",
+          "names": [
+            "networkx"
+          ],
+          "line": 30
+        },
+        {
+          "module": "",
+          "names": [
+            "sys"
+          ],
+          "line": 255
+        }
+      ],
+      "calls": [
+        "open",
+        "result.get",
+        "results.append",
+        "print",
+        "len",
+        "memory.update_from_analysis",
+        "data.get",
+        "list",
+        "all",
+        "ProjectMemory",
+        "filters.items",
+        "nx.DiGraph",
+        "edge_data.get",
+        "GraphMemory",
+        "edge.pop",
+        "sys.exit",
+        "self.load",
+        "json.dump",
+        "SemanticMemory",
+        "memory.save",
+        "json.load",
+        "node.pop",
+        "neighbors.append"
+      ]
+    },
+    "orchestrator/orchestrator.py": {
+      "filename": "orchestrator/orchestrator.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 24,
+          "args": [
+            "self",
+            "project_path"
+          ],
+          "returns": null
+        },
+        {
+          "name": "process_task",
+          "line": 38,
+          "args": [
+            "self",
+            "task"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_determine_agent",
+          "line": 89,
+          "args": [
+            "self",
+            "task_type"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_validate_task_safety",
+          "line": 103,
+          "args": [
+            "self",
+            "task"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_validate_result",
+          "line": 136,
+          "args": [
+            "self",
+            "result"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_available_agents",
+          "line": 166,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_agent_capabilities",
+          "line": 172,
+          "args": [
+            "self",
+            "agent_name"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "TaskOrchestrator",
+          "line": 19,
+          "methods": [
+            "__init__",
+            "process_task",
+            "_determine_agent",
+            "_validate_task_safety",
+            "_validate_result",
+            "get_available_agents",
+            "get_agent_capabilities"
+          ],
+          "bases": []
+        }
+      ],
+      "imports": [
+        {
+          "module": "",
+          "names": [
+            "json"
+          ],
+          "line": 8
+        },
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "Any",
+            "List",
+            "Optional"
+          ],
+          "line": 9
+        },
+        {
+          "module": "devnova.state.api",
+          "names": [
+            "ProjectStateAPI"
+          ],
+          "line": 10
+        },
+        {
+          "module": "devnova.llm.interface",
+          "names": [
+            "LLMInterface",
+            "create_llm_interface"
+          ],
+          "line": 11
+        },
+        {
+          "module": "devnova.agents.architect_agent",
+          "names": [
+            "ArchitectAgent"
+          ],
+          "line": 12
+        },
+        {
+          "module": "devnova.agents.feature_agent",
+          "names": [
+            "FeatureAgent"
+          ],
+          "line": 13
+        },
+        {
+          "module": "devnova.agents.debug_agent",
+          "names": [
+            "DebugAgent"
+          ],
+          "line": 14
+        },
+        {
+          "module": "devnova.agents.test_agent",
+          "names": [
+            "TestAgent"
+          ],
+          "line": 15
+        },
+        {
+          "module": "devnova.agents.docs_agent",
+          "names": [
+            "DocsAgent"
+          ],
+          "line": 16
+        },
+        {
+          "module": "",
+          "names": [
+            "sys"
+          ],
+          "line": 208
+        }
+      ],
+      "calls": [
+        "print",
+        "any",
+        "ProjectStateAPI",
+        "self._validate_task_safety",
+        "len",
+        "ArchitectAgent",
+        "mapping.get",
+        "create_llm_interface",
+        "task.get",
+        "list",
+        "TaskOrchestrator",
+        "json.dumps",
+        "DocsAgent",
+        "self._determine_agent",
+        "TestAgent",
+        "sys.exit",
+        "DebugAgent",
+        "agent.process_task",
+        "FeatureAgent",
+        "str",
+        "self._validate_result",
+        "isinstance",
+        "capabilities.get",
+        "orchestrator.process_task"
+      ]
+    },
+    "state/api.py": {
+      "filename": "state/api.py",
+      "functions": [
+        {
+          "name": "__init__",
+          "line": 48,
+          "args": [
+            "self",
+            "project_path",
+            "state_dir"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_load_state",
+          "line": 56,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "refresh_state",
+          "line": 61,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_save_cached_data",
+          "line": 85,
+          "args": [
+            "self",
+            "name",
+            "data"
+          ],
+          "returns": null
+        },
+        {
+          "name": "serialize",
+          "line": 89,
+          "args": [
+            "obj"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_load_cached_data",
+          "line": 105,
+          "args": [
+            "self",
+            "name"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_file_tree",
+          "line": 115,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_files",
+          "line": 122,
+          "args": [
+            "self",
+            "language"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_functions",
+          "line": 135,
+          "args": [
+            "self",
+            "file_path"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_classes",
+          "line": 144,
+          "args": [
+            "self",
+            "file_path"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_dependencies",
+          "line": 153,
+          "args": [
+            "self",
+            "file_path"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_dependents",
+          "line": 160,
+          "args": [
+            "self",
+            "file_path"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_call_graph",
+          "line": 169,
+          "args": [
+            "self",
+            "function_id"
+          ],
+          "returns": null
+        },
+        {
+          "name": "search_semantic",
+          "line": 181,
+          "args": [
+            "self",
+            "query",
+            "top_k"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_architecture_facts",
+          "line": 187,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "_count_by_language",
+          "line": 207,
+          "args": [
+            "self"
+          ],
+          "returns": null
+        },
+        {
+          "name": "get_change_diffs",
+          "line": 219,
+          "args": [
+            "self",
+            "previous_state"
+          ],
+          "returns": null
+        }
+      ],
+      "classes": [
+        {
+          "name": "ProjectStateAPI",
+          "line": 36,
+          "methods": [
+            "__init__",
+            "_load_state",
+            "refresh_state",
+            "_save_cached_data",
+            "_load_cached_data",
+            "get_file_tree",
+            "get_files",
+            "get_functions",
+            "get_classes",
+            "get_dependencies",
+            "get_dependents",
+            "get_call_graph",
+            "search_semantic",
+            "get_architecture_facts",
+            "_count_by_language",
+            "get_change_diffs"
+          ],
+          "bases": []
+        }
+      ],
+      "imports": [
+        {
+          "module": "",
+          "names": [
+            "json"
+          ],
+          "line": 28
+        },
+        {
+          "module": "",
+          "names": [
+            "os"
+          ],
+          "line": 29
+        },
+        {
+          "module": "typing",
+          "names": [
+            "Dict",
+            "List",
+            "Any",
+            "Optional"
+          ],
+          "line": 30
+        },
+        {
+          "module": "devnova.ingestion.engine",
+          "names": [
+            "ProjectIngestionEngine"
+          ],
+          "line": 31
+        },
+        {
+          "module": "devnova.analysis.analyzer",
+          "names": [
+            "StaticAnalysisLayer"
+          ],
+          "line": 32
+        },
+        {
+          "module": "devnova.memory.memory",
+          "names": [
+            "ProjectMemory"
+          ],
+          "line": 33
+        },
+        {
+          "module": "",
+          "names": [
+            "sys"
+          ],
+          "line": 237
+        }
+      ],
+      "calls": [
+        "open",
+        "print",
+        "metadata.get",
+        "api.get_files",
+        "ProjectStateAPI",
+        "vars",
+        "len",
+        "ProjectIngestionEngine",
+        "api.get_architecture_facts",
+        "f.get",
+        "set",
+        "list",
+        "hasattr",
+        "json.dumps",
+        "StaticAnalysisLayer",
+        "ProjectMemory",
+        "api.refresh_state",
+        "file.get",
+        "self._count_by_language",
+        "ingestion_engine.scan_project",
+        "sys.exit",
+        "analysis_layer.analyze_all_python_files",
+        "cached_ingestion.get",
+        "counts.get",
+        "json.dump",
+        "os.makedirs",
+        "isinstance",
+        "obj.items",
+        "json.load",
+        "self._load_state",
+        "self._load_cached_data",
+        "self._save_cached_data",
+        "cached.get",
+        "serialize"
+      ]
+    }
+  },
+  "summary": {
+    "total_files_analyzed": 15,
+    "files_with_errors": 0
+  }
+}

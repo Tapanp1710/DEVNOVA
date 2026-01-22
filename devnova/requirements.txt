@@ -1,0 +1,22 @@
+# DEVNOVA Requirements
+# Minimal dependencies for research-grade implementation
+
+# Core Python (built-in, no need to list)
+
+# Static analysis
+ast  # Built-in
+
+# Graph memory
+networkx>=3.0
+
+# Persistence (file-based for now)
+# Using built-in json, no external dep
+
+# LLM interface (placeholder)
+requests>=2.25.0
+
+# Testing
+pytest>=7.0.0
+
+# Optional: for vector memory placeholder
+# numpy>=1.21.0  # Commented out until implemented

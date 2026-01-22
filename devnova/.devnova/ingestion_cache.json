@@ -1,0 +1,150 @@
+{
+  "files": [
+    {
+      "path": "README.md",
+      "size": 3060,
+      "mtime": 1769111197.868813,
+      "language": "markdown"
+    },
+    {
+      "path": "requirements.txt",
+      "size": 450,
+      "mtime": 1769111197.8698034,
+      "language": "unknown"
+    },
+    {
+      "path": "run.py",
+      "size": 3389,
+      "mtime": 1769111337.8936155,
+      "language": "python"
+    },
+    {
+      "path": "__init__.py",
+      "size": 186,
+      "mtime": 1769111197.8863864,
+      "language": "python"
+    },
+    {
+      "path": "agents/architect_agent.py",
+      "size": 1765,
+      "mtime": 1769111197.8778627,
+      "language": "python"
+    },
+    {
+      "path": "agents/base.py",
+      "size": 4457,
+      "mtime": 1769111197.8738043,
+      "language": "python"
+    },
+    {
+      "path": "agents/debug_agent.py",
+      "size": 1538,
+      "mtime": 1769111197.8738043,
+      "language": "python"
+    },
+    {
+      "path": "agents/docs_agent.py",
+      "size": 1468,
+      "mtime": 1769111197.883382,
+      "language": "python"
+    },
+    {
+      "path": "agents/feature_agent.py",
+      "size": 1362,
+      "mtime": 1769111197.883382,
+      "language": "python"
+    },
+    {
+      "path": "agents/test_agent.py",
+      "size": 1408,
+      "mtime": 1769111197.8788576,
+      "language": "python"
+    },
+    {
+      "path": "analysis/analyzer.py",
+      "size": 6603,
+      "mtime": 1769111654.809116,
+      "language": "python"
+    },
+    {
+      "path": "ide/interfaces.py",
+      "size": 8506,
+      "mtime": 1769111197.8863864,
+      "language": "python"
+    },
+    {
+      "path": "ingestion/engine.py",
+      "size": 5510,
+      "mtime": 1769111654.809116,
+      "language": "python"
+    },
+    {
+      "path": "llm/interface.py",
+      "size": 4082,
+      "mtime": 1769111197.883382,
+      "language": "python"
+    },
+    {
+      "path": "memory/memory.py",
+      "size": 9702,
+      "mtime": 1769111685.2201834,
+      "language": "python"
+    },
+    {
+      "path": "orchestrator/orchestrator.py",
+      "size": 7810,
+      "mtime": 1769111197.883382,
+      "language": "python"
+    },
+    {
+      "path": "state/api.py",
+      "size": 8677,
+      "mtime": 1769111753.8724778,
+      "language": "python"
+    }
+  ],
+  "tree": {
+    "README.md": {},
+    "requirements.txt": {},
+    "run.py": {},
+    "__init__.py": {},
+    "agents": {
+      "architect_agent.py": {},
+      "base.py": {},
+      "debug_agent.py": {},
+      "docs_agent.py": {},
+      "feature_agent.py": {},
+      "test_agent.py": {}
+    },
+    "analysis": {
+      "analyzer.py": {}
+    },
+    "ide": {
+      "interfaces.py": {}
+    },
+    "ingestion": {
+      "engine.py": {}
+    },
+    "llm": {
+      "interface.py": {}
+    },
+    "memory": {
+      "memory.py": {}
+    },
+    "orchestrator": {
+      "orchestrator.py": {}
+    },
+    "state": {
+      "api.py": {}
+    }
+  },
+  "metadata": {
+    "root_path": "D:\\DEVNOVA\\devnova",
+    "total_files": 17,
+    "languages": [
+      "python",
+      "unknown",
+      "markdown"
+    ]
+  }
+}
