@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEVNOVA Web Platform</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/editor/editor.main.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+
+        .header {
+            background-color: #2d2d30;
+            padding: 10px 20px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .header h1 {
+            color: #4f9cf9;
+            font-size: 18px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #252526;
+            border-right: 1px solid #3e3e42;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .file-tree {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .file-item {
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            margin: 2px 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .file-item:hover {
+            background-color: #37373d;
+        }
+
+        .file-item.selected {
+            background-color: #37373d;
+            border-left: 3px solid #4f9cf9;
+        }
+
+        .file-item.directory::before {
+            content: "📁";
+        }
+
+        .file-item.file::before {
+            content: "📄";
+        }
+
+        .intent-panel {
+            padding: 10px;
+            border-top: 1px solid #3e3e42;
+            background-color: #2d2d30;
+        }
+
+        .intent-input {
+            width: 100%;
+            padding: 8px;
+            background-color: #3b3b3f;
+            border: 1px solid #3e3e42;
+            border-radius: 3px;
+            color: #ffffff;
+            margin-bottom: 10px;
+        }
+
+        .intent-input::placeholder {
+            color: #cccccc;
+        }
+
+        .button {
+            background-color: #4f9cf9;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 3px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        .button:hover {
+            background-color: #3c8ce0;
+        }
+
+        .button:disabled {
+            background-color: #666666;
+            cursor: not-allowed;
+        }
+
+        .editor-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .editor-toolbar {
+            background-color: #2d2d30;
+            padding: 5px 10px;
+            border-bottom: 1px solid #3e3e42;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .current-file {
+            font-size: 14px;
+            color: #cccccc;
+        }
+
+        .editor {
+            flex: 1;
+            min-height: 0;
+        }
+
+        .results-panel {
+            height: 300px;
+            background-color: #252526;
+            border-top: 1px solid #3e3e42;
+            display: flex;
+        }
+
+        .results-tabs {
+            display: flex;
+            background-color: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #2d2d30;
+            border-right: 1px solid #3e3e42;
+        }
+
+        .tab.active {
+            background-color: #1e1e1e;
+            border-bottom: 2px solid #4f9cf9;
+        }
+
+        .tab-content {
+            flex: 1;
+            padding: 15px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .suggestion-item {
+            background-color: #2d2d30;
+            border: 1px solid #3e3e42;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .suggestion-type {
+            font-weight: bold;
+            color: #4f9cf9;
+            margin-bottom: 5px;
+        }
+
+        .suggestion-content {
+            margin-bottom: 5px;
+        }
+
+        .suggestion-confidence {
+            font-size: 12px;
+            color: #cccccc;
+        }
+
+        .apply-button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .apply-button:hover {
+            background-color: #218838;
+        }
+
+        .status {
+            padding: 5px 10px;
+            font-size: 12px;
+            background-color: #2d2d30;
+            border-bottom: 1px solid #3e3e42;
+        }
+
+        .status.success {
+            color: #28a745;
+        }
+
+        .status.error {
+            color: #dc3545;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #4f9cf9;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>DEVNOVA Web Platform</h1>
+        <div id="status" class="status">Ready</div>
+    </div>
+
+    <div class="main-content">
+        <div class="sidebar">
+            <div class="file-tree">
+                <div id="file-tree"></div>
+            </div>
+            <div class="intent-panel">
+                <input type="text" id="intent-input" class="intent-input"
+                       placeholder="Describe what you want to do...">
+                <button id="analyze-btn" class="button">Get AI Suggestions</button>
+                <button id="explain-btn" class="button">Explain Code</button>
+            </div>
+        </div>
+
+        <div class="editor-container">
+            <div class="editor-toolbar">
+                <span id="current-file" class="current-file">No file selected</span>
+                <button id="save-btn" class="button" style="width: auto; margin-left: auto;">Save</button>
+            </div>
+            <div id="editor" class="editor"></div>
+        </div>
+    </div>
+
+    <div class="results-panel">
+        <div class="results-tabs">
+            <div class="tab active" data-tab="suggestions">Suggestions</div>
+            <div class="tab" data-tab="explanations">Explanations</div>
+        </div>
+        <div id="suggestions-content" class="tab-content active">
+            <p>Click "Get AI Suggestions" to receive recommendations from DEVNOVA.</p>
+        </div>
+        <div id="explanations-content" class="tab-content">
+            <p>Click "Explain Code" to get detailed explanations from DEVNOVA.</p>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs/loader.min.js"></script>
+    <script>
+        // Global state
+        let editor = null;
+        let currentFile = null;
+        let fileTree = {};
+        let isLoading = false;
+
+        // Initialize Monaco Editor
+        require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
+        require(['vs/editor/editor.main'], function() {
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: '// Select a file to start editing\n',
+                language: 'plaintext',
+                theme: 'vs-dark',
+                fontSize: 14,
+                minimap: { enabled: true },
+                scrollBeyondLastLine: false,
+                automaticLayout: true
+            });
+
+            // Load initial file tree
+            loadFileTree();
+
+            // Set up event listeners
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // File tree clicks
+            document.getElementById('file-tree').addEventListener('click', handleFileClick);
+
+            // Buttons
+            document.getElementById('analyze-btn').addEventListener('click', handleAnalyze);
+            document.getElementById('explain-btn').addEventListener('click', handleExplain);
+            document.getElementById('save-btn').addEventListener('click', handleSave);
+
+            // Tabs
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.addEventListener('click', handleTabClick);
+            });
+
+            // Intent input enter key
+            document.getElementById('intent-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    handleAnalyze();
+                }
+            });
+        }
+
+        async function loadFileTree(path = '') {
+            try {
+                const response = await fetch(`/api/files?path=${encodeURIComponent(path)}`);
+                const data = await response.json();
+
+                if (path === '') {
+                    fileTree = {};
+                    document.getElementById('file-tree').innerHTML = '';
+                }
+
+                renderFileTree(data.items, path);
+            } catch (error) {
+                console.error('Error loading file tree:', error);
+                showStatus('Error loading files', 'error');
+            }
+        }
+
+        function renderFileTree(items, basePath) {
+            const container = document.getElementById('file-tree');
+
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = `file-item ${item.type}`;
+                div.dataset.path = item.path;
+                div.dataset.type = item.type;
+                div.textContent = item.name;
+                container.appendChild(div);
+            });
+        }
+
+        async function handleFileClick(e) {
+            const item = e.target.closest('.file-item');
+            if (!item) return;
+
+            const path = item.dataset.path;
+            const type = item.dataset.type;
+
+            if (type === 'directory') {
+                // Toggle directory expansion (simplified)
+                return;
+            }
+
+            // Load file content
+            await loadFile(path);
+        }
+
+        async function loadFile(path) {
+            try {
+                showStatus('Loading file...', 'success');
+
+                const response = await fetch('/api/files/read', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: path })
+                });
+
+                const data = await response.json();
+
+                if (data.exists) {
+                    // Determine language from file extension
+                    const language = getLanguageFromPath(path);
+                    const model = monaco.editor.createModel(data.content, language);
+                    editor.setModel(model);
+
+                    currentFile = path;
+                    document.getElementById('current-file').textContent = path;
+
+                    // Clear selections
+                    document.querySelectorAll('.file-item.selected').forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    document.querySelector(`[data-path="${path}"]`).classList.add('selected');
+
+                    showStatus('File loaded', 'success');
+                } else {
+                    showStatus('File not found', 'error');
+                }
+            } catch (error) {
+                console.error('Error loading file:', error);
+                showStatus('Error loading file', 'error');
+            }
+        }
+
+        function getLanguageFromPath(path) {
+            const ext = path.split('.').pop().toLowerCase();
+            const languageMap = {
+                'py': 'python',
+                'js': 'javascript',
+                'ts': 'typescript',
+                'java': 'java',
+                'cpp': 'cpp',
+                'c': 'c',
+                'cs': 'csharp',
+                'go': 'go',
+                'rs': 'rust',
+                'html': 'html',
+                'css': 'css',
+                'json': 'json',
+                'md': 'markdown'
+            };
+            return languageMap[ext] || 'plaintext';
+        }
+
+        async function handleSave() {
+            if (!currentFile) {
+                showStatus('No file selected', 'error');
+                return;
+            }
+
+            try {
+                showStatus('Saving...', 'success');
+
+                const content = editor.getValue();
+
+                const response = await fetch('/api/files/save', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        path: currentFile,
+                        content: content
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('File saved successfully', 'success');
+                } else {
+                    showStatus('Error saving file', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving file:', error);
+                showStatus('Error saving file', 'error');
+            }
+        }
+
+        async function handleAnalyze() {
+            if (isLoading) return;
+
+            const intent = document.getElementById('intent-input').value.trim();
+            if (!intent) {
+                showStatus('Please enter your intent', 'error');
+                return;
+            }
+
+            await performDEVNOVAAnalysis('suggestions', intent);
+        }
+
+        async function handleExplain() {
+            if (isLoading) return;
+
+            const selectedText = editor.getModel().getValueInRange(editor.getSelection());
+            const intent = document.getElementById('intent-input').value.trim() || 'Explain this code';
+
+            await performDEVNOVAAnalysis('explanation', intent, selectedText);
+        }
+
+        async function performDEVNOVAAnalysis(requestType, intent, selectedText = null) {
+            if (!currentFile) {
+                showStatus('Please select a file first', 'error');
+                return;
+            }
+
+            isLoading = true;
+            setButtonsDisabled(true);
+            showStatus('Analyzing with DEVNOVA...', 'success');
+
+            try {
+                const requestData = {
+                    file_path: currentFile,
+                    cursor_position: null, // Could be enhanced to get cursor position
+                    selected_text: selectedText,
+                    user_intent: intent,
+                    request_type: requestType
+                };
+
+                const response = await fetch('/api/devnova/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.data) {
+                    displayResults(requestType, data.data);
+                    showStatus('Analysis complete', 'success');
+                } else {
+                    showStatus(data.error || 'Analysis failed', 'error');
+                }
+            } catch (error) {
+                console.error('Error analyzing with DEVNOVA:', error);
+                showStatus('Error communicating with DEVNOVA', 'error');
+            } finally {
+                isLoading = false;
+                setButtonsDisabled(false);
+            }
+        }
+
+        function displayResults(type, data) {
+            const container = type === 'suggestions' ?
+                document.getElementById('suggestions-content') :
+                document.getElementById('explanations-content');
+
+            container.innerHTML = '';
+
+            if (type === 'suggestions' && data.suggestions) {
+                data.suggestions.forEach(suggestion => {
+                    const div = document.createElement('div');
+                    div.className = 'suggestion-item';
+
+                    div.innerHTML = `
+                        <div class="suggestion-type">${suggestion.type || 'Suggestion'}</div>
+                        <div class="suggestion-content">${suggestion.content || suggestion}</div>
+                        <div class="suggestion-confidence">Confidence: ${Math.round((suggestion.confidence || data.confidence || 0) * 100)}%</div>
+                        <button class="apply-button" onclick="applySuggestion('${suggestion.content || suggestion}')">Apply Manually</button>
+                    `;
+
+                    container.appendChild(div);
+                });
+
+                if (data.agent_used) {
+                    const agentDiv = document.createElement('div');
+                    agentDiv.innerHTML = `<small>Analyzed by: ${data.agent_used}</small>`;
+                    container.appendChild(agentDiv);
+                }
+            } else if (type === 'explanation' && data.explanation) {
+                const div = document.createElement('div');
+                div.innerHTML = `
+                    <h4>Explanation</h4>
+                    <p>${data.explanation}</p>
+                    ${data.confidence ? `<p><small>Confidence: ${Math.round(data.confidence * 100)}%</small></p>` : ''}
+                    ${data.agent_used ? `<p><small>Analyzed by: ${data.agent_used}</small></p>` : ''}
+                `;
+                container.appendChild(div);
+            } else {
+                container.innerHTML = '<p>No results available.</p>';
+            }
+
+            // Switch to the appropriate tab
+            switchTab(type === 'suggestions' ? 'suggestions' : 'explanations');
+        }
+
+        function applySuggestion(content) {
+            // This is a MANUAL operation - user must explicitly apply
+            alert('Manual Application Required:\n\n' + content + '\n\nPlease apply this change manually in the editor.');
+        }
+
+        function handleTabClick(e) {
+            const tabName = e.target.dataset.tab;
+            switchTab(tabName);
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            document.getElementById(`${tabName}-content`).classList.add('active');
+        }
+
+        function setButtonsDisabled(disabled) {
+            document.getElementById('analyze-btn').disabled = disabled;
+            document.getElementById('explain-btn').disabled = disabled;
+
+            if (disabled) {
+                document.getElementById('analyze-btn').innerHTML = '<span class="loading"></span> Analyzing...';
+                document.getElementById('explain-btn').innerHTML = '<span class="loading"></span> Explaining...';
+            } else {
+                document.getElementById('analyze-btn').textContent = 'Get AI Suggestions';
+                document.getElementById('explain-btn').textContent = 'Explain Code';
+            }
+        }
+
+        function showStatus(message, type = 'success') {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = `status ${type}`;
+        }
+
+        // Global function for apply button
+        window.applySuggestion = applySuggestion;
+    </script>
+</body>
+</html>
