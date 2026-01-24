@@ -10,6 +10,10 @@ from typing import Dict, Any, Optional
 import json
 
 
+import os
+import requests
+import time
+
 class LLMProvider(ABC):
     """Abstract base class for LLM providers."""
 
@@ -27,6 +31,48 @@ class LLMProvider(ABC):
         """
         pass
 
+
+class OpenRouterLLMProvider(LLMProvider):
+    """OpenRouter LLM provider implementation."""
+
+    def __init__(self):
+        self.api_key = os.getenv("OPENROUTER_API_KEY")
+        self.model = os.getenv("LLM_MODEL", "openrouter/auto")
+        self.timeout = int(os.getenv("LLM_TIMEOUT", "60"))
+        self.base_url = "https://openrouter.ai/api/v1/chat/completions"
+        if not self.api_key:
+            raise RuntimeError("OPENROUTER_API_KEY not set in environment variables.")
+
+    def generate_response(self, prompt: str, **kwargs) -> str:
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "user", "content": prompt}
+            ],
+            "max_tokens": kwargs.get("max_tokens", 1024)
+        }
+        retries = 3
+        for attempt in range(retries):
+            try:
+                response = requests.post(self.base_url, headers=headers, json=payload, timeout=self.timeout)
+                response.raise_for_status()
+                data = response.json()
+                # OpenRouter returns choices[0].message.content
+                return data["choices"][0]["message"]["content"]
+            except Exception as e:
+                if attempt < retries - 1:
+                    time.sleep(2 ** attempt)
+                    continue
+                return json.dumps({
+                    "reasoning": f"LLM API error: {str(e)}",
+                    "confidence": 0.0,
+                    "recommendations": ["Check API key, network, or provider status"],
+                    "structured_output": False
+                })
 
 class MockLLMProvider(LLMProvider):
     """Mock LLM provider for testing and development."""
@@ -50,7 +96,13 @@ class LLMInterface:
     """
 
     def __init__(self, provider: Optional[LLMProvider] = None):
-        self.provider = provider or MockLLMProvider()
+        provider_name = os.getenv("LLM_PROVIDER", "openrouter").lower()
+        if provider:
+            self.provider = provider
+        elif provider_name == "openrouter":
+            self.provider = OpenRouterLLMProvider()
+        else:
+            self.provider = MockLLMProvider()
 
     def reason_about_architecture(self, facts: Dict[str, Any], question: str) -> Dict[str, Any]:
         """
@@ -238,18 +290,44 @@ Respond in JSON format with keys: reasoning, confidence (0-1), recommendations (
         Parse LLM response into structured format.
 
         Args:
-            response: Raw LLM response
+            response: Raw LLM response (may be JSON, or JSON inside markdown code block)
 
         Returns:
             Structured response dict
         """
+        import re, json
+        raw = response.strip() if isinstance(response, str) else response
+        # Try to extract JSON from markdown code block
+        if isinstance(raw, str):
+            # Match ```json ... ``` or ``` ... ```
+            codeblock = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", raw, re.IGNORECASE)
+            if codeblock:
+                raw = codeblock.group(1).strip()
         try:
-            return json.loads(response)
-        except json.JSONDecodeError:
+            result = json.loads(raw)
+            # Clamp confidence if present
+            if isinstance(result, dict) and "confidence" in result:
+                result["confidence"] = self._clamp_confidence(result["confidence"])
+            return result
+        except Exception:
             # Fallback for non-JSON responses
             return {
                 "reasoning": response,
-                "confidence": 0.5,
+                "confidence": self._clamp_confidence(0.7),
                 "recommendations": ["Response parsing failed - review manually"],
                 "structured_output": False
             }
+
+    def _clamp_confidence(self, confidence: float) -> float:
+        """
+        Clamp confidence to the allowed range [0.70, 0.95].
+        """
+        try:
+            c = float(confidence)
+        except Exception:
+            return 0.7
+        if c > 0.95:
+            return 0.95
+        if c < 0.70:
+            return 0.70
+        return c

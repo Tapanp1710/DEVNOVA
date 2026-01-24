@@ -60,110 +60,78 @@ class IngestionEngine:
     def scan_project(self, project_root: str) -> Dict[str, Any]:
         """
         Scan a project directory and extract basic metadata.
-
-        Args:
-            project_root: Root directory of the project
-
-        Returns:
-            Dictionary containing project metadata
+        Returns a dictionary with project metadata. Demo-friendly: does not scan symlinks or hidden files.
         """
         project_path = Path(project_root)
+        if not project_path.exists():
+            raise FileNotFoundError(f"Project root {project_root} does not exist.")
+        if not project_path.is_dir():
+            raise NotADirectoryError(f"Project root {project_root} is not a directory.")
 
-        if not project_path.exists() or not project_path.is_dir():
-            raise ValueError(f"Project root {project_root} does not exist or is not a directory")
-
-        # Scan all files
         all_files = self._scan_directory(project_path)
-
-        # Categorize files
         file_info = []
         languages = set()
 
         for file_path in all_files:
-            relative_path = file_path.relative_to(project_path)
-            file_info_item = self._analyze_file(file_path, relative_path)
-            if file_info_item:
-                file_info.append(file_info_item)
-                languages.add(file_info_item.language)
+            try:
+                relative_path = file_path.relative_to(project_path)
+            except ValueError:
+                # Defensive: skip files outside root (shouldn't happen)
+                continue
+            info = self._analyze_file(file_path, relative_path)
+            if info:
+                file_info.append(info)
+                if info.language:
+                    languages.add(info.language)
 
-        # Build project metadata
-        project_metadata = {
-            "project_root": str(project_path.absolute()),
+        return {
+            "project_root": str(project_path.resolve()),
             "scan_time": datetime.now().isoformat(),
             "total_files": len(file_info),
-            "languages": list(languages),
+            "languages": sorted(languages),
             "files": [self._file_info_to_dict(f) for f in file_info],
             "language_breakdown": self._calculate_language_breakdown(file_info)
         }
 
-        return project_metadata
-
     def _scan_directory(self, directory: Path) -> List[Path]:
         """
-        Recursively scan directory for files.
-
-        Args:
-            directory: Directory to scan
-
-        Returns:
-            List of file paths
+        Recursively scan directory for files. Skips symlinks and hidden files. Demo-friendly: prints warnings, does not raise.
         """
         files = []
-
         try:
             for item in directory.rglob('*'):
+                if item.is_symlink() or item.name.startswith('.'):
+                    continue
                 if item.is_file() and self._should_include_file(item):
                     files.append(item)
         except PermissionError as e:
             print(f"Warning: Permission denied accessing {directory}: {e}")
-
+        except Exception as e:
+            print(f"Warning: Error scanning {directory}: {e}")
         return files
 
     def _should_include_file(self, file_path: Path) -> bool:
         """
-        Determine if a file should be included in the scan.
-
-        Args:
-            file_path: File path to check
-
-        Returns:
-            True if file should be included
+        Return True if file should be included. Excludes files by pattern and size. Demo-friendly: skips unreadable files.
         """
-        # Check if any part of the path matches exclude patterns
-        parts = file_path.parts
-        for part in parts:
-            if part in self.exclude_patterns:
-                return False
-
-        # Check file size (skip very large files)
         try:
+            for part in file_path.parts:
+                if part in self.exclude_patterns:
+                    return False
             if file_path.stat().st_size > 10 * 1024 * 1024:  # 10MB
                 return False
-        except OSError:
+        except Exception:
             return False
-
         return True
 
     def _analyze_file(self, file_path: Path, relative_path: Path) -> Optional[FileInfo]:
         """
-        Analyze a single file and extract metadata.
-
-        Args:
-            file_path: Absolute path to the file
-            relative_path: Relative path from project root
-
-        Returns:
-            FileInfo object or None if file should be skipped
+        Analyze a single file and extract metadata. Returns FileInfo or None if analysis fails.
         """
         try:
             stat = file_path.stat()
-
-            # Determine language
             language = self._detect_language(file_path)
-
-            # Basic binary detection
             is_binary = self._is_binary_file(file_path)
-
             return FileInfo(
                 path=str(relative_path),
                 language=language,
@@ -171,8 +139,56 @@ class IngestionEngine:
                 last_modified=datetime.fromtimestamp(stat.st_mtime),
                 is_binary=is_binary
             )
+        except Exception as e:
+            print(f"Warning: Could not analyze file {file_path}: {e}")
+            return None
+    def _scan_directory(self, directory: Path) -> List[Path]:
+        """
+        Recursively scan directory for files. Skips symlinks and hidden files. Demo-friendly: prints warnings, does not raise.
+        """
+        files = []
+        try:
+            for item in directory.rglob('*'):
+                if item.is_symlink() or item.name.startswith('.'):
+                    continue
+                if item.is_file() and self._should_include_file(item):
+                    files.append(item)
+        except PermissionError as e:
+            print(f"Warning: Permission denied accessing {directory}: {e}")
+        except Exception as e:
+            print(f"Warning: Error scanning {directory}: {e}")
+        return files
 
-        except OSError as e:
+    def _should_include_file(self, file_path: Path) -> bool:
+        """
+        Return True if file should be included. Excludes files by pattern and size. Demo-friendly: skips unreadable files.
+        """
+        try:
+            for part in file_path.parts:
+                if part in self.exclude_patterns:
+                    return False
+            if file_path.stat().st_size > 10 * 1024 * 1024:  # 10MB
+                return False
+        except Exception:
+            return False
+        return True
+
+    def _analyze_file(self, file_path: Path, relative_path: Path) -> Optional[FileInfo]:
+        """
+        Analyze a single file and extract metadata. Returns FileInfo or None if analysis fails.
+        """
+        try:
+            stat = file_path.stat()
+            language = self._detect_language(file_path)
+            is_binary = self._is_binary_file(file_path)
+            return FileInfo(
+                path=str(relative_path),
+                language=language,
+                size=stat.st_size,
+                last_modified=datetime.fromtimestamp(stat.st_mtime),
+                is_binary=is_binary
+            )
+        except Exception as e:
             print(f"Warning: Could not analyze file {file_path}: {e}")
             return None
 
