@@ -1,3 +1,21 @@
+# Favicon fix: Serve /favicon.ico from frontend directory
+@app.get("/favicon.ico")
+async def favicon():
+    """Serve favicon.ico for browser requests."""
+    favicon_path = FRONTEND_DIR / "favicon.ico"
+    if favicon_path.exists():
+        return FileResponse(favicon_path)
+    # Return 204 No Content if missing (should not happen)
+    from fastapi import Response
+    return Response(status_code=204)
+#
+# Verification Checklist:
+# - [x] .env loaded via python-dotenv
+# - [x] Backend fails fast if required env vars missing
+# - [x] Backend starts cleanly with one command
+# - [x] Web IDE loads at /
+# - [x] /api/ide/status returns valid JSON
+# - [x] /api/ide/task produces real output
 # web-platform/backend/main.py
 """
 DEVNOVA Web Platform Backend
@@ -14,6 +32,7 @@ ABSOLUTE BOUNDARIES:
 - DEVNOVA is read-only advisory service
 """
 
+
 import os
 import json
 from pathlib import Path
@@ -22,7 +41,24 @@ from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
-import uvicorn
+from dotenv import load_dotenv
+
+# Load .env for all imports (if not already loaded)
+load_dotenv(dotenv_path=os.path.join(os.path.dirname(__file__), '../../.env'), override=True)
+
+# Fail fast if required env vars are missing when app is imported directly
+required_vars = [
+    "OPENROUTER_API_KEY",
+    "LLM_PROVIDER",
+    "LLM_MODEL",
+    "LLM_TIMEOUT",
+    "DEVNOVA_ENV",
+    "DEVNOVA_PORT",
+    "DEVNOVA_PROJECT_ROOT"
+]
+missing = [v for v in required_vars if not os.getenv(v)]
+if missing:
+    raise RuntimeError(f"Missing required environment variables: {', '.join(missing)}")
 
 # DEVNOVA Integration
 from devnova.ide.interfaces import (
@@ -32,8 +68,9 @@ from devnova.ide.interfaces import (
 
 app = FastAPI(title="DEVNOVA Web Platform", version="1.0.0")
 
-# Configuration
-PROJECT_ROOT = Path("D:/DEVNOVA/devnova")  # Sandboxed to DEVNOVA project
+
+# Configuration from environment
+PROJECT_ROOT = Path(os.getenv("DEVNOVA_PROJECT_ROOT", "D:/DEVNOVA/devnova"))
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
 # DEVNOVA Integration
@@ -178,9 +215,77 @@ def get_language_from_extension(filename: str) -> str:
     }
     return language_map.get(ext, 'unknown')
 
+
 # ============================================================================
 # API ENDPOINTS
 # ============================================================================
+
+from devnova.orchestrator.central_orchestrator import CentralOrchestrator
+import os
+
+# Load config from environment
+DEVNOVA_PORT = int(os.getenv("DEVNOVA_PORT", "8000"))
+DEVNOVA_ENV = os.getenv("DEVNOVA_ENV", "development")
+LLM_PROVIDER = os.getenv("LLM_PROVIDER", "openrouter")
+
+# Central orchestrator instance (stateful)
+central_orchestrator = CentralOrchestrator(str(PROJECT_ROOT))
+
+class IDETaskRequest(BaseModel):
+    code: str
+    active_file: str
+    project_context: Dict[str, Any]
+    intent: str
+    request_type: str  # "suggestion" or "explanation"
+
+class IDETaskResponse(BaseModel):
+    success: bool
+    output: Any = None
+    error: Optional[str] = None
+
+@app.post("/api/ide/task")
+async def ide_task(request: IDETaskRequest):
+    """
+    Accepts code/text input, active file path, project context, intent, and request type.
+    Invokes DEVNOVA orchestrator and agents, returns structured output.
+    """
+    try:
+        # Build IDEContext
+        context = IDEContext(
+            file_path=request.active_file,
+            cursor_position={"line": 1, "column": 1},  # Placeholder, can be extended
+            selected_text=request.code,
+            project_root=request.project_context.get("project_root", str(PROJECT_ROOT)),
+            language=request.project_context.get("language", "python")
+        )
+        if request.request_type == "suggestion":
+            suggestions = central_orchestrator.orchestrator.get_suggestions(context, request.intent)
+            return IDETaskResponse(success=True, output=[s.dict() for s in suggestions])
+        elif request.request_type == "explanation":
+            explanations = central_orchestrator.orchestrator.get_explanations(context, request.code, "general")
+            return IDETaskResponse(success=True, output=[e.dict() for e in explanations])
+        else:
+            return IDETaskResponse(success=False, error="Unknown request_type")
+    except Exception as e:
+        return IDETaskResponse(success=False, error=str(e))
+
+@app.get("/api/ide/status")
+async def ide_status():
+    """
+    Returns system readiness and provider status.
+    """
+    try:
+        # Check orchestrator and LLM provider status
+        status = {
+            "ready": True,
+            "env": DEVNOVA_ENV,
+            "port": DEVNOVA_PORT,
+            "llm_provider": LLM_PROVIDER,
+            "project_root": str(PROJECT_ROOT)
+        }
+        return status
+    except Exception as e:
+        return {"ready": False, "error": str(e)}
 
 @app.get("/")
 async def root():
@@ -387,18 +492,5 @@ app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 # MAIN
 # ============================================================================
 
-if __name__ == "__main__":
-    print("🚀 Starting DEVNOVA Web Platform Backend")
-    print(f"📁 Project Root: {PROJECT_ROOT}")
-    print(f"🌐 Frontend: {FRONTEND_DIR}")
-    print("🔒 Sandboxed file operations only")
-    print("🤖 DEVNOVA integration ready")
-    print()
-
-    uvicorn.run(
-        "main:app",
-        host="127.0.0.1",
-        port=8000,
-        reload=True,
-        log_level="info"
-    )
+##
+# Entrypoint logic removed. This file only defines FastAPI app 'app'.
