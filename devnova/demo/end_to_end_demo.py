@@ -53,63 +53,53 @@ def demo_ide_integration():
     project_root = Path(__file__).parent.parent
     client = DEVNovaClient(str(project_root))
 
-    # Simulate IDE context
+    print("\n==============================")
+    print("DEVNOVA Interactive AI Demo")
+    print("==============================\n")
+
+    # Get user input for code and intent
+    file_path = input("Enter file path (relative to project root): ").strip()
+    code_snippet = input("Paste code to analyze (or leave blank to skip): ").strip()
+    intent = input("Describe your intent (e.g., 'add error handling', 'explain this code'): ").strip()
+    explanation_type = input("Request type ('explain' or 'suggest'): ").strip().lower()
+    language = file_path.split('.')[-1] if '.' in file_path else "python"
+
     context = IDEContext(
-        file_path="devnova/state/api.py",
-        cursor_position={"line": 50, "column": 10},
-        selected_text="def get_project_facts(self)",
+        file_path=file_path or "devnova/state/api.py",
+        cursor_position={"line": 1, "column": 1},
+        selected_text=code_snippet if code_snippet else None,
         project_root=str(project_root),
-        language="python"
+        language=language
     )
 
-    # Test suggestions
-    print("💡 Getting code suggestions...")
-    suggestions_request = SuggestionRequest(
-        context=context,
-        intent="add error handling to this function",
-        max_suggestions=3
-    )
-
-    try:
-        suggestions_response = client.get_suggestions(suggestions_request)
-        print(f"   📝 Generated {len(suggestions_response.suggestions)} suggestions")
-        for i, suggestion in enumerate(suggestions_response.suggestions[:2], 1):
-            print(f"      {i}. {suggestion.title}")
-    except Exception as e:
-        print(f"   ⚠️  Suggestions demo failed: {e}")
-
-    # Test explanations
-    print("\n🔍 Getting code explanations...")
-    explanation_request = ExplanationRequest(
-        context=context,
-        code_to_explain="def get_project_facts(self, force_reload: bool = False) -> ProjectFacts:",
-        explanation_type="general"
-    )
-
-    try:
-        explanation_response = client.get_explanation(explanation_request)
-        print(f"   📖 Generated {len(explanation_response.explanations)} explanations")
-        if explanation_response.explanations:
-            print(f"      Title: {explanation_response.explanations[0].title}")
-    except Exception as e:
-        print(f"   ⚠️  Explanations demo failed: {e}")
-
-    # Test risk analysis
-    print("\n⚠️  Analyzing code risks...")
-    risk_request = RiskAnalysisRequest(
-        context=context,
-        code_to_analyze="if True: pass",
-        analysis_type="general"
-    )
-
-    try:
-        risk_response = client.analyze_risks(risk_request)
-        print(f"   🚨 Found {len(risk_response.risks)} risks")
-        print(f"   📊 Overall risk score: {risk_response.overall_score:.2f}")
-    except Exception as e:
-        print(f"   ⚠️  Risk analysis demo failed: {e}")
-
-    print()
+    if explanation_type == "explain":
+        print("\n🔍 Getting code explanation...")
+        explanation_request = ExplanationRequest(
+            context=context,
+            code_to_explain=code_snippet,
+            explanation_type="general"
+        )
+        try:
+            explanation_response = client.get_explanation(explanation_request)
+            for expl in explanation_response.explanations:
+                print(f"\n--- Explanation ---\nTitle: {expl.title}\nExplanation: {expl.explanation}\nKey Points: {expl.key_points}\nRelated Concepts: {expl.related_concepts}\nConfidence: {expl.confidence:.2f}")
+        except Exception as e:
+            print(f"   ⚠️  Explanations failed: {e}")
+    elif explanation_type == "suggest":
+        print("\n💡 Getting AI suggestions...")
+        suggestions_request = SuggestionRequest(
+            context=context,
+            intent=intent,
+            max_suggestions=3
+        )
+        try:
+            suggestions_response = client.get_suggestions(suggestions_request)
+            for sugg in suggestions_response.suggestions:
+                print(f"\n--- Suggestion ---\nTitle: {sugg.title}\nDescription: {sugg.description}\nReasoning: {sugg.reasoning}\nConfidence: {sugg.confidence:.2f}")
+        except Exception as e:
+            print(f"   ⚠️  Suggestions failed: {e}")
+    else:
+        print("Invalid request type. Please enter 'explain' or 'suggest'.")
 
 
 def demo_agent_coordination():

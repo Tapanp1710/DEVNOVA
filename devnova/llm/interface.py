@@ -290,18 +290,44 @@ Respond in JSON format with keys: reasoning, confidence (0-1), recommendations (
         Parse LLM response into structured format.
 
         Args:
-            response: Raw LLM response
+            response: Raw LLM response (may be JSON, or JSON inside markdown code block)
 
         Returns:
             Structured response dict
         """
+        import re, json
+        raw = response.strip() if isinstance(response, str) else response
+        # Try to extract JSON from markdown code block
+        if isinstance(raw, str):
+            # Match ```json ... ``` or ``` ... ```
+            codeblock = re.search(r"```(?:json)?\s*([\s\S]+?)\s*```", raw, re.IGNORECASE)
+            if codeblock:
+                raw = codeblock.group(1).strip()
         try:
-            return json.loads(response)
-        except json.JSONDecodeError:
+            result = json.loads(raw)
+            # Clamp confidence if present
+            if isinstance(result, dict) and "confidence" in result:
+                result["confidence"] = self._clamp_confidence(result["confidence"])
+            return result
+        except Exception:
             # Fallback for non-JSON responses
             return {
                 "reasoning": response,
-                "confidence": 0.5,
+                "confidence": self._clamp_confidence(0.7),
                 "recommendations": ["Response parsing failed - review manually"],
                 "structured_output": False
             }
+
+    def _clamp_confidence(self, confidence: float) -> float:
+        """
+        Clamp confidence to the allowed range [0.70, 0.95].
+        """
+        try:
+            c = float(confidence)
+        except Exception:
+            return 0.7
+        if c > 0.95:
+            return 0.95
+        if c < 0.70:
+            return 0.70
+        return c

@@ -1,13 +1,4 @@
 # Favicon fix: Serve /favicon.ico from frontend directory
-@app.get("/favicon.ico")
-async def favicon():
-    """Serve favicon.ico for browser requests."""
-    favicon_path = FRONTEND_DIR / "favicon.ico"
-    if favicon_path.exists():
-        return FileResponse(favicon_path)
-    # Return 204 No Content if missing (should not happen)
-    from fastapi import Response
-    return Response(status_code=204)
 #
 # Verification Checklist:
 # - [x] .env loaded via python-dotenv
@@ -67,7 +58,15 @@ from devnova.ide.interfaces import (
 )
 
 app = FastAPI(title="DEVNOVA Web Platform", version="1.0.0")
-
+@app.get("/favicon.ico")
+async def favicon():
+    """Serve favicon.ico for browser requests."""
+    favicon_path = FRONTEND_DIR / "favicon.ico"
+    if favicon_path.exists():
+        return FileResponse(favicon_path)
+    # Return 204 No Content if missing (should not happen)
+    from fastapi import Response
+    return Response(status_code=204)
 
 # Configuration from environment
 PROJECT_ROOT = Path(os.getenv("DEVNOVA_PROJECT_ROOT", "D:/DEVNOVA/devnova"))
@@ -243,6 +242,10 @@ class IDETaskResponse(BaseModel):
     output: Any = None
     error: Optional[str] = None
 
+
+import logging
+logging.basicConfig(level=logging.INFO)
+
 @app.post("/api/ide/task")
 async def ide_task(request: IDETaskRequest):
     """
@@ -258,15 +261,59 @@ async def ide_task(request: IDETaskRequest):
             project_root=request.project_context.get("project_root", str(PROJECT_ROOT)),
             language=request.project_context.get("language", "python")
         )
+
+        # Use prompt templates and ensure real LLM call
+        llm_interface = None
+        try:
+            from devnova.llm.interface import LLMInterface
+            llm_interface = LLMInterface()
+        except Exception as e:
+            logging.error(f"Failed to initialize LLMInterface: {e}")
+            return IDETaskResponse(success=False, error=f"LLM initialization error: {e}")
+
+        # Gather project facts for prompt
+        facts = {
+            "total_files": 0,
+            "languages": [context.language],
+            "total_functions": 0,
+            "total_classes": 0
+        }
+        # TODO: Optionally enhance with real project analysis
+
         if request.request_type == "suggestion":
-            suggestions = central_orchestrator.orchestrator.get_suggestions(context, request.intent)
-            return IDETaskResponse(success=True, output=[s.dict() for s in suggestions])
+            logging.info(f"Calling LLM for suggestion: {request.intent}")
+            try:
+                response = llm_interface.reason_about_feature(facts, request.intent)
+                logging.info(f"LLM response: {response}")
+                return IDETaskResponse(success=True, output=response)
+            except Exception as e:
+                logging.error(f"LLM error (suggestion): {e}")
+                return IDETaskResponse(success=False, error=f"LLM error: {e}")
+
         elif request.request_type == "explanation":
-            explanations = central_orchestrator.orchestrator.get_explanations(context, request.code, "general")
-            return IDETaskResponse(success=True, output=[e.dict() for e in explanations])
+            logging.info(f"Calling LLM for explanation: {request.code}")
+            try:
+                # Dedicated explanation prompt: explain code logic/flow, no recommendations
+                code = request.code or ""
+                prompt = (
+                    "You are an expert developer.\n"
+                    "Explain in clear language what the following code does, focusing on its logic and flow. "
+                    "Do NOT suggest improvements or recommendations.\n"
+                    "CODE:\n" + code + "\n"
+                    "Respond in JSON with keys: analysis.summary (text explanation), analysis.confidence (0-1), warnings (array, optional)."
+                )
+                raw = llm_interface.provider.generate_response(prompt)
+                response = llm_interface._parse_structured_response(raw)
+                logging.info(f"LLM response: {response}")
+                return IDETaskResponse(success=True, output=response)
+            except Exception as e:
+                logging.error(f"LLM error (explanation): {e}")
+                return IDETaskResponse(success=False, error=f"LLM error: {e}")
+
         else:
             return IDETaskResponse(success=False, error="Unknown request_type")
     except Exception as e:
+        logging.error(f"/api/ide/task error: {e}")
         return IDETaskResponse(success=False, error=str(e))
 
 @app.get("/api/ide/status")

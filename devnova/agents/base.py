@@ -112,6 +112,7 @@ class BaseAgent(ABC):
 
     def _create_suggestion(self, title: str, description: str, reasoning: str,
                           confidence: float = 0.8) -> Suggestion:
+        confidence = self._clamp_confidence(confidence)
         """
         Create a standardized suggestion.
 
@@ -135,6 +136,7 @@ class BaseAgent(ABC):
 
     def _create_explanation(self, title: str, explanation: str, key_points: List[str],
                            related_concepts: List[str], confidence: float = 0.8) -> Explanation:
+        confidence = self._clamp_confidence(confidence)
         """
         Create a standardized explanation.
 
@@ -159,6 +161,7 @@ class BaseAgent(ABC):
 
     def _create_risk(self, severity: str, category: str, title: str, description: str,
                     location: Dict[str, Any], suggestion: str, confidence: float = 0.8) -> Risk:
+        confidence = self._clamp_confidence(confidence)
         """
         Create a standardized risk.
 
@@ -184,3 +187,13 @@ class BaseAgent(ABC):
             suggestion=suggestion,
             confidence=confidence
         )
+
+    def _clamp_confidence(self, confidence: float) -> float:
+        """
+        Clamp confidence to the allowed range [0.70, 0.95].
+        """
+        if confidence > 0.95:
+            return 0.95
+        if confidence < 0.70:
+            return 0.70
+        return confidence

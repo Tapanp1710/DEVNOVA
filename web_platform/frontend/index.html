@@ -247,6 +247,43 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* AI Output Formatting */
+        .ai-section {
+            margin-bottom: 1.2em;
+            padding: 0.7em 1em;
+            border-radius: 6px;
+            background: #23272e;
+            color: #e6e6e6;
+        }
+        .ai-summary {
+            border-left: 4px solid #4fc3f7;
+        }
+        .ai-confidence {
+            margin-bottom: 0.7em;
+        }
+        .ai-badge {
+            display: inline-block;
+            background: #2e7d32;
+            color: #fff;
+            border-radius: 12px;
+            padding: 0.2em 0.8em;
+            font-weight: bold;
+            font-size: 1em;
+        }
+        .ai-recommendations {
+            border-left: 4px solid #ffb300;
+        }
+        .ai-recommendations ol {
+            margin: 0.5em 0 0 1.2em;
+        }
+        .ai-warnings {
+            border-left: 4px solid #e53935;
+            background: #2d2323;
+        }
+        .ai-warnings ul {
+            margin: 0.5em 0 0 1.2em;
+        }
     </style>
 </head>
 <body>
@@ -298,6 +335,44 @@
         let fileTree = {};
         let isLoading = false;
 
+
+        // Define handleFileClick globally before event wiring
+        async function handleFileClick(e) {
+            const item = e.target.closest('.file-item');
+            if (!item) return;
+            const path = item.dataset.path;
+            const type = item.dataset.type;
+            if (type === 'directory') {
+                await loadDirectory(path);
+            } else {
+                await loadFile(path);
+            }
+        }
+
+        // Directory loader for folder expansion
+        async function loadDirectory(path) {
+            // Expand/collapse logic
+            const folderKey = path;
+            const fileTreeEl = document.getElementById('file-tree');
+            let targetDiv = fileTreeEl.querySelector(`[data-path="${path}"]`);
+            if (!targetDiv) return;
+            if (expandedFolders.has(folderKey)) {
+                expandedFolders.delete(folderKey);
+                // Remove children
+                let next = targetDiv.nextSibling;
+                if (next && next.classList && next.classList.contains('folder-children')) {
+                    next.remove();
+                }
+            } else {
+                expandedFolders.add(folderKey);
+                let childrenContainer = document.createElement('div');
+                childrenContainer.className = 'folder-children';
+                childrenContainer.style.marginLeft = '16px';
+                targetDiv.after(childrenContainer);
+                await loadFileTree(path, childrenContainer);
+            }
+        }
+
         // Initialize Monaco Editor
         require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.44.0/min/vs' } });
         require(['vs/editor/editor.main'], function() {
@@ -320,12 +395,16 @@
 
         function setupEventListeners() {
             // File tree clicks
-            document.getElementById('file-tree').addEventListener('click', handleFileClick);
+            const fileTreeEl = document.getElementById('file-tree');
+            if (fileTreeEl) fileTreeEl.addEventListener('click', handleFileClick);
 
             // Buttons
-            document.getElementById('analyze-btn').addEventListener('click', handleAnalyze);
-            document.getElementById('explain-btn').addEventListener('click', handleExplain);
-            document.getElementById('save-btn').addEventListener('click', handleSave);
+            const analyzeBtn = document.getElementById('analyze-btn');
+            if (analyzeBtn) analyzeBtn.addEventListener('click', handleAnalyze);
+            const explainBtn = document.getElementById('explain-btn');
+            if (explainBtn) explainBtn.addEventListener('click', handleExplain);
+            const saveBtn = document.getElementById('save-btn');
+            if (saveBtn) saveBtn.addEventListener('click', handleSave);
 
             // Tabs
             document.querySelectorAll('.tab').forEach(tab => {
@@ -333,58 +412,79 @@
             });
 
             // Intent input enter key
-            document.getElementById('intent-input').addEventListener('keypress', function(e) {
+            const intentInput = document.getElementById('intent-input');
+            if (intentInput) intentInput.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     handleAnalyze();
                 }
             });
         }
 
-        async function loadFileTree(path = '') {
+
+        // State for expanded folders
+        let expandedFolders = new Set();
+
+        async function loadFileTree(path = '', container = null) {
             try {
                 const response = await fetch(`/api/files?path=${encodeURIComponent(path)}`);
                 const data = await response.json();
 
-                if (path === '') {
+                if (!container) {
                     fileTree = {};
                     document.getElementById('file-tree').innerHTML = '';
+                    container = document.getElementById('file-tree');
                 }
 
-                renderFileTree(data.items, path);
+                renderFileTree(data.items, path, container);
             } catch (error) {
                 console.error('Error loading file tree:', error);
                 showStatus('Error loading files', 'error');
             }
         }
 
-        function renderFileTree(items, basePath) {
-            const container = document.getElementById('file-tree');
-
+        function renderFileTree(items, basePath, container) {
             items.forEach(item => {
                 const div = document.createElement('div');
                 div.className = `file-item ${item.type}`;
                 div.dataset.path = item.path;
                 div.dataset.type = item.type;
                 div.textContent = item.name;
+
+                if (item.type === 'directory') {
+                    div.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        const folderKey = item.path;
+                        if (expandedFolders.has(folderKey)) {
+                            // Collapse
+                            expandedFolders.delete(folderKey);
+                            // Remove children
+                            const next = div.nextSibling;
+                            if (next && next.classList && next.classList.contains('folder-children')) {
+                                next.remove();
+                            }
+                        } else {
+                            // Expand
+                            expandedFolders.add(folderKey);
+                            // Insert children container
+                            let childrenContainer = document.createElement('div');
+                            childrenContainer.className = 'folder-children';
+                            childrenContainer.style.marginLeft = '16px';
+                            div.after(childrenContainer);
+                            await loadFileTree(item.path, childrenContainer);
+                        }
+                    });
+                } else {
+                    div.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        await loadFile(item.path);
+                    });
+                }
                 container.appendChild(div);
             });
         }
 
-        async function handleFileClick(e) {
-            const item = e.target.closest('.file-item');
-            if (!item) return;
-
-            const path = item.dataset.path;
-            const type = item.dataset.type;
-
-            if (type === 'directory') {
-                // Toggle directory expansion (simplified)
-                return;
-            }
-
-            // Load file content
-            await loadFile(path);
-        }
+        // Remove old click handler setup
+        // document.getElementById('file-tree').addEventListener('click', handleFileClick);
 
         async function loadFile(path) {
             try {
@@ -405,20 +505,21 @@
                     editor.setModel(model);
 
                     currentFile = path;
-                    document.getElementById('current-file').textContent = path;
+                    const currentFileEl = document.getElementById('current-file');
+                    if (currentFileEl) currentFileEl.textContent = path;
 
                     // Clear selections
                     document.querySelectorAll('.file-item.selected').forEach(el => {
-                        el.classList.remove('selected');
+                        if (el && el.classList) el.classList.remove('selected');
                     });
-                    document.querySelector(`[data-path="${path}"]`).classList.add('selected');
+                    const selectedEl = document.querySelector(`[data-path="${path}"]`);
+                    if (selectedEl && selectedEl.classList) selectedEl.classList.add('selected');
 
                     showStatus('File loaded', 'success');
                 } else {
                     showStatus('File not found', 'error');
                 }
             } catch (error) {
-                console.error('Error loading file:', error);
                 showStatus('Error loading file', 'error');
             }
         }
@@ -497,6 +598,7 @@
             await performDEVNOVAAnalysis('explanation', intent, selectedText);
         }
 
+
         async function performDEVNOVAAnalysis(requestType, intent, selectedText = null) {
             if (!currentFile) {
                 showStatus('Please select a file first', 'error');
@@ -509,14 +611,14 @@
 
             try {
                 const requestData = {
-                    file_path: currentFile,
-                    cursor_position: null, // Could be enhanced to get cursor position
-                    selected_text: selectedText,
-                    user_intent: intent,
+                    code: selectedText || editor.getValue(),
+                    active_file: currentFile,
+                    project_context: { project_root: '', language: getLanguageFromPath(currentFile) },
+                    intent: intent,
                     request_type: requestType
                 };
 
-                const response = await fetch('/api/devnova/analyze', {
+                const response = await fetch('/api/ide/task', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestData)
@@ -524,19 +626,120 @@
 
                 const data = await response.json();
 
-                if (data.success && data.data) {
-                    displayResults(requestType, data.data);
+                if (data.success && data.output) {
+                    renderAIOutput(requestType, data.output);
                     showStatus('Analysis complete', 'success');
                 } else {
                     showStatus(data.error || 'Analysis failed', 'error');
+                    renderAIOutput(requestType, { error: data.error || 'No output' });
                 }
             } catch (error) {
-                console.error('Error analyzing with DEVNOVA:', error);
                 showStatus('Error communicating with DEVNOVA', 'error');
+                renderAIOutput(requestType, { error: error.message });
             } finally {
                 isLoading = false;
                 setButtonsDisabled(false);
             }
+        }
+
+        function renderAIOutput(type, output) {
+            const container = type === 'suggestions' ?
+                document.getElementById('suggestions-content') :
+                document.getElementById('explanations-content');
+            container.innerHTML = '';
+
+            if (output.error) {
+                container.innerHTML = `<div class="suggestion-item"><span style="color:#dc3545">${output.error}</span></div>`;
+                switchTab(type === 'suggestions' ? 'suggestions' : 'explanations');
+                return;
+            }
+
+            // Helper: safely get nested fields
+            function get(obj, path, fallback) {
+                return path.split('.').reduce((o, k) => (o && o[k] !== undefined ? o[k] : undefined), obj) ?? fallback;
+            }
+
+            // Escape HTML for safe rendering
+            function escapeHTML(str) {
+                if (typeof str !== 'string') return str;
+                return str.replace(/[&<>"']/g, function(tag) {
+                    const chars = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+                    return chars[tag] || tag;
+                });
+            }
+
+            // Summary
+            const summary = get(output, 'analysis.summary', get(output, 'summary', ''));
+            if (summary) {
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = 'ai-section ai-summary';
+                summaryDiv.innerHTML = `<h3>Summary</h3><div>${escapeHTML(summary)}</div>`;
+                container.appendChild(summaryDiv);
+            }
+
+            // Confidence
+            let confidence = get(output, 'analysis.confidence', get(output, 'confidence', null));
+            if (confidence !== null && confidence !== undefined && confidence !== '') {
+                const confDiv = document.createElement('div');
+                confDiv.className = 'ai-section ai-confidence';
+                let confVal = confidence;
+                if (typeof confVal === 'number') {
+                    confVal = Math.round(confVal * 100) + '%';
+                } else if (typeof confVal === 'string' && confVal.match(/^\d+(\.\d+)?$/)) {
+                    confVal = Math.round(parseFloat(confVal) * 100) + '%';
+                }
+                confDiv.innerHTML = `<span class="ai-badge">Confidence: ${escapeHTML(confVal)}</span>`;
+                container.appendChild(confDiv);
+            }
+
+            // Recommendations
+            let recs = get(output, 'recommendations', null);
+            if (!Array.isArray(recs)) {
+                // Try structured_output.recommendations
+                recs = get(output, 'structured_output.recommendations', null);
+            }
+            if (Array.isArray(recs) && recs.length > 0) {
+                const recDiv = document.createElement('div');
+                recDiv.className = 'ai-section ai-recommendations';
+                recDiv.innerHTML = '<h3>Recommendations</h3>';
+                const ol = document.createElement('ol');
+                recs.forEach((step, idx) => {
+                    let text = '';
+                    if (typeof step === 'string') {
+                        text = step;
+                    } else if (step && typeof step === 'object') {
+                        text = step.step || step.description || JSON.stringify(step);
+                    }
+                    const li = document.createElement('li');
+                    li.textContent = text;
+                    ol.appendChild(li);
+                });
+                recDiv.appendChild(ol);
+                container.appendChild(recDiv);
+            }
+
+            // Warnings
+            let warnings = get(output, 'warnings', null);
+            if (!warnings) warnings = get(output, 'analysis.warnings', null);
+            if (Array.isArray(warnings) && warnings.length > 0) {
+                const warnDiv = document.createElement('div');
+                warnDiv.className = 'ai-section ai-warnings';
+                warnDiv.innerHTML = '<h3>Warnings</h3>';
+                const ul = document.createElement('ul');
+                warnings.forEach(w => {
+                    const li = document.createElement('li');
+                    li.textContent = typeof w === 'string' ? w : JSON.stringify(w);
+                    ul.appendChild(li);
+                });
+                warnDiv.appendChild(ul);
+                container.appendChild(warnDiv);
+            }
+
+            // If nothing rendered, show fallback
+            if (!container.innerHTML.trim()) {
+                container.textContent = 'No details to display.';
+            }
+            switchTab(type === 'suggestions' ? 'suggestions' : 'explanations');
         }
 
         function displayResults(type, data) {
